@@ -7,12 +7,14 @@ import "keymap.proto";
 message Request {
     oneof request_type {
         bool get_combos = 1;
+        SetComboRequest set_combo = 2;
     }
 }
 
 message Response {
     oneof response_type {
         Combos get_combos = 1;
+        SetComboResponse set_combo = 2;
     }
 }
 
@@ -25,6 +27,10 @@ message Notification {
 // A single combo definition. Modeled on keymap's Layer/BehaviorBinding so the
 // frontend can reuse the existing behavior-display + behavior-picker machinery.
 message Combo {
+    // key_positions is a nanopb static array (see combos.options.in) so it
+    // round-trips through both the get_combos response encode AND the set_combo
+    // request decode without per-field callbacks (the RPC framework decodes
+    // requests generically with no callback setup).
     repeated int32 key_positions = 1;
     // Bitmask of layers the combo is active on. 0 = all layers.
     uint32 layers = 2;
@@ -45,4 +51,18 @@ message Combos {
     repeated ComboEntry combos = 1;
     uint32 max_combos = 2;
     uint32 max_keys_per_combo = 3;
+}
+
+// Edit the combo occupying pool slot `index` in place (M2: RAM-only, lost on
+// reboot). Mirrors keymap's SetLayerBindingRequest.
+message SetComboRequest {
+    uint32 index = 1;
+    Combo combo = 2;
+}
+
+enum SetComboResponse {
+    SET_COMBO_RESP_OK = 0;
+    SET_COMBO_RESP_INVALID_LOCATION = 1;
+    SET_COMBO_RESP_INVALID_BEHAVIOR = 2;
+    SET_COMBO_RESP_INVALID_PARAMETERS = 3;
 }
