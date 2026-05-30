@@ -45,8 +45,13 @@ message Combo {
     // Bitmask of layers the combo is active on. 0 = all layers.
     uint32 layers = 2;
     zmk.keymap.BehaviorBinding binding = 3;
-    int32 timeout_ms = 4;
-    int32 require_prior_idle_ms = 5;
+    // sint32 (zigzag): timeout_ms and require_prior_idle_ms are commonly small or
+    // -1 ("disabled"). Plain int32 encodes a negative as a 10-byte varint; sint32
+    // encodes -1 as a single byte, shrinking set_combo/add_combo requests (and the
+    // RX-buffer pressure flagged in A6 / the M2 RX-buffer fix). Transparent to the
+    // firmware (still int32_t) and the TS client (still number).
+    sint32 timeout_ms = 4;
+    sint32 require_prior_idle_ms = 5;
     bool slow_release = 6;
 }
 
