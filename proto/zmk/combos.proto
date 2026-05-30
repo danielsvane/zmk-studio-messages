@@ -2,6 +2,8 @@ syntax = "proto3";
 
 package zmk.combos;
 
+import "keymap.proto";
+
 message Request {
     oneof request_type {
         bool get_combos = 1;
@@ -20,7 +22,27 @@ message Notification {
     }
 }
 
-// Milestone 0 walking-skeleton: empty container. Fleshed out in Milestone 1
-// with `repeated ComboEntry combos`, `max_combos`, `max_keys_per_combo`.
+// A single combo definition. Modeled on keymap's Layer/BehaviorBinding so the
+// frontend can reuse the existing behavior-display + behavior-picker machinery.
+message Combo {
+    repeated int32 key_positions = 1;
+    // Bitmask of layers the combo is active on. 0 = all layers.
+    uint32 layers = 2;
+    zmk.keymap.BehaviorBinding binding = 3;
+    int32 timeout_ms = 4;
+    int32 require_prior_idle_ms = 5;
+    bool slow_release = 6;
+}
+
+// Pairs a combo with its stable pool index (== virtual-key-position arg ==
+// NVS key). Indexes are not necessarily contiguous once add/delete land.
+message ComboEntry {
+    uint32 index = 1;
+    Combo combo = 2;
+}
+
 message Combos {
+    repeated ComboEntry combos = 1;
+    uint32 max_combos = 2;
+    uint32 max_keys_per_combo = 3;
 }
