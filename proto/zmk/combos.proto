@@ -8,6 +8,11 @@ message Request {
     oneof request_type {
         bool get_combos = 1;
         SetComboRequest set_combo = 2;
+        bool check_unsaved_changes = 3;
+        bool save_changes = 4;
+        bool discard_changes = 5;
+        AddComboRequest add_combo = 6;
+        RemoveComboRequest remove_combo = 7;
     }
 }
 
@@ -15,6 +20,11 @@ message Response {
     oneof response_type {
         Combos get_combos = 1;
         SetComboResponse set_combo = 2;
+        bool check_unsaved_changes = 3;
+        SaveChangesResponse save_changes = 4;
+        bool discard_changes = 5;
+        AddComboResponse add_combo = 6;
+        RemoveComboResponse remove_combo = 7;
     }
 }
 
@@ -60,9 +70,73 @@ message SetComboRequest {
     Combo combo = 2;
 }
 
+// Create a brand-new combo (M4). The firmware places it in the lowest free pool
+// slot and returns the assigned index. Mirrors keymap's AddLayerRequest, but
+// carries the full combo to create (unlike layers, a combo isn't useful empty).
+message AddComboRequest {
+    Combo combo = 1;
+}
+
+message AddComboResponse {
+    oneof result {
+        AddComboResponseDetails ok = 1;
+        AddComboErrorCode err = 2;
+    }
+}
+
+message AddComboResponseDetails {
+    uint32 index = 1;
+    Combo combo = 2;
+}
+
+enum AddComboErrorCode {
+    ADD_COMBO_ERR_OK = 0;
+    ADD_COMBO_ERR_GENERIC = 1;
+    ADD_COMBO_ERR_NO_SPACE = 2;
+    ADD_COMBO_ERR_INVALID_PARAMETERS = 3;
+}
+
+// Delete the combo occupying pool slot `index` (M4). Mirrors keymap's
+// RemoveLayerRequest.
+message RemoveComboRequest {
+    uint32 index = 1;
+}
+
+message RemoveComboResponse {
+    oneof result {
+        RemoveComboOk ok = 1;
+        RemoveComboErrorCode err = 2;
+    }
+}
+
+message RemoveComboOk {
+}
+
+enum RemoveComboErrorCode {
+    REMOVE_COMBO_ERR_OK = 0;
+    REMOVE_COMBO_ERR_GENERIC = 1;
+    REMOVE_COMBO_ERR_INVALID_INDEX = 2;
+}
+
 enum SetComboResponse {
     SET_COMBO_RESP_OK = 0;
     SET_COMBO_RESP_INVALID_LOCATION = 1;
     SET_COMBO_RESP_INVALID_BEHAVIOR = 2;
     SET_COMBO_RESP_INVALID_PARAMETERS = 3;
+}
+
+// Result of save_changes. Mirrors keymap's SaveChangesResponse so the frontend
+// can reuse the same error handling. NO_SPACE surfaces a full NVS partition.
+message SaveChangesResponse {
+    oneof result {
+        bool ok = 1;
+        SaveChangesErrorCode err = 2;
+    }
+}
+
+enum SaveChangesErrorCode {
+    SAVE_CHANGES_ERR_OK = 0;
+    SAVE_CHANGES_ERR_GENERIC = 1;
+    SAVE_CHANGES_ERR_NOT_SUPPORTED = 2;
+    SAVE_CHANGES_ERR_NO_SPACE = 3;
 }
