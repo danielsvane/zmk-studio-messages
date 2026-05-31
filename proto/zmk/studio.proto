@@ -41,6 +41,7 @@ message RequestResponse {
 message Notification {
     oneof subsystem {
         zmk.core.Notification core = 2;
+        zmk.behaviors.Notification behaviors = 4;
         zmk.keymap.Notification keymap = 5;
         zmk.combos.Notification combos = 6;
     }
