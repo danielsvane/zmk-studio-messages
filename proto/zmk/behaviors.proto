@@ -12,6 +12,7 @@ message Request {
         bool check_unsaved_changes = 6;
         bool save_changes = 7;
         bool discard_changes = 8;
+        RemoveCustomBehaviorRequest remove_custom_behavior = 9;
     }
 }
 
@@ -29,6 +30,7 @@ message Response {
         bool check_unsaved_changes = 6;
         SaveChangesResponse save_changes = 7;
         bool discard_changes = 8;
+        RemoveCustomBehaviorResponse remove_custom_behavior = 9;
     }
 }
 
@@ -130,6 +132,34 @@ enum AddCustomBehaviorErrorCode {
     ADD_CUSTOM_BEHAVIOR_ERR_GENERIC = 1;
     ADD_CUSTOM_BEHAVIOR_ERR_NO_SPACE = 2;
     ADD_CUSTOM_BEHAVIOR_ERR_INVALID_PARAMETERS = 3;
+}
+
+// Free the runtime pool slot holding the custom behaviour with local_id `id`,
+// turning it back into an unclaimed spare (M8: RAM-only until save_changes
+// persists the deletion). The freed slot disappears from list_all_behaviors and
+// get_custom_behaviors. On save its NVS record is removed, so it stays gone
+// across reboot; the pool has no devicetree-seeded slots, so nothing reseeds it
+// and no tombstone record is needed (unlike combos, which tombstone deleted
+// stock combos). Mirrors combos' RemoveComboRequest.
+message RemoveCustomBehaviorRequest {
+    uint32 id = 1;             // behaviour local_id (the slot to free)
+}
+
+// Result of remove_custom_behavior. NOT_FOUND: no CLAIMED runtime slot has that
+// local_id. Mirrors combos' RemoveComboResponse.
+message RemoveCustomBehaviorResponse {
+    oneof result {
+        RemoveCustomBehaviorOk ok = 1;
+        RemoveCustomBehaviorErrorCode err = 2;
+    }
+}
+
+message RemoveCustomBehaviorOk {}
+
+enum RemoveCustomBehaviorErrorCode {
+    REMOVE_CUSTOM_BEHAVIOR_ERR_OK = 0;
+    REMOVE_CUSTOM_BEHAVIOR_ERR_GENERIC = 1;
+    REMOVE_CUSTOM_BEHAVIOR_ERR_NOT_FOUND = 2;
 }
 
 // One editable config field of a custom behaviour. Carries BOTH the current
