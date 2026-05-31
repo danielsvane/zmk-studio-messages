@@ -8,6 +8,7 @@ message Request {
         GetBehaviorDetailsRequest get_behavior_details = 2;
         bool get_custom_behaviors = 3;
         SetCustomBehaviorRequest set_custom_behavior = 4;
+        AddCustomBehaviorRequest add_custom_behavior = 5;
     }
 }
 
@@ -21,6 +22,7 @@ message Response {
         GetBehaviorDetailsResponse get_behavior_details = 2;
         CustomBehaviors get_custom_behaviors = 3;
         SetCustomBehaviorResponse set_custom_behavior = 4;
+        AddCustomBehaviorResponse add_custom_behavior = 5;
     }
 }
 
@@ -60,6 +62,42 @@ enum SetCustomBehaviorResponse {
     SET_CUSTOM_BEHAVIOR_RESP_OK = 0;
     SET_CUSTOM_BEHAVIOR_RESP_NOT_FOUND = 1;
     SET_CUSTOM_BEHAVIOR_RESP_INVALID_PARAMETERS = 2;
+}
+
+// Claim a free spare instance of behaviour family `kind` (e.g. "hold-tap") from
+// the runtime pool, give it `display_name`, and seed it with `config` (the same
+// generic ConfigField list as set_custom_behavior; omitted fields keep their DT
+// defaults). The claimed slot becomes a real behaviour: it appears in
+// list_all_behaviors and is selectable as a binding (M4: RAM-only, lost on
+// reboot). Mirrors combos' AddComboRequest.
+message AddCustomBehaviorRequest {
+    string kind = 1;
+    string display_name = 2;
+    repeated ConfigField config = 3;
+}
+
+// Result of add_custom_behavior: the created behaviour on success, else an error
+// code. Mirrors combos' AddComboResponse.
+message AddCustomBehaviorResponse {
+    oneof result {
+        AddCustomBehaviorResponseDetails ok = 1;
+        AddCustomBehaviorErrorCode err = 2;
+    }
+}
+
+message AddCustomBehaviorResponseDetails {
+    uint32 id = 1;             // the claimed slot's stable local_id
+    CustomBehavior behavior = 2;
+}
+
+// NO_SPACE: no free spare instance of that kind remains in the pool.
+// INVALID_PARAMETERS: a seeded config field was out of its schema's bounds, or
+// `kind` names no pooled family.
+enum AddCustomBehaviorErrorCode {
+    ADD_CUSTOM_BEHAVIOR_ERR_OK = 0;
+    ADD_CUSTOM_BEHAVIOR_ERR_GENERIC = 1;
+    ADD_CUSTOM_BEHAVIOR_ERR_NO_SPACE = 2;
+    ADD_CUSTOM_BEHAVIOR_ERR_INVALID_PARAMETERS = 3;
 }
 
 // One editable config field of a custom behaviour. Carries BOTH the current
