@@ -6,6 +6,7 @@ message Request {
     oneof request_type {
         bool list_all_behaviors = 1;
         GetBehaviorDetailsRequest get_behavior_details = 2;
+        bool get_custom_behaviors = 3;
     }
 }
 
@@ -17,7 +18,22 @@ message Response {
     oneof response_type {
         ListAllBehaviorsResponse list_all_behaviors = 1;
         GetBehaviorDetailsResponse get_behavior_details = 2;
+        CustomBehaviors get_custom_behaviors = 3;
     }
+}
+
+// The pool of runtime-configurable custom behaviour instances. M0 returns this
+// empty; later milestones flesh out CustomBehavior with the generic config
+// schema (kind, typed config fields). Modeled on combos' Combos response.
+message CustomBehaviors {
+    repeated CustomBehavior behaviors = 1;
+}
+
+// A single custom behaviour instance. Near-empty for the M0 tracer; grows a
+// `kind` + `repeated ConfigField config` in M1.
+message CustomBehavior {
+    uint32 id = 1;            // behaviour local_id (stable across reboot — NVS key)
+    string display_name = 2;
 }
 
 message ListAllBehaviorsResponse {
