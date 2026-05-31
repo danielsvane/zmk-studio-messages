@@ -16,6 +16,7 @@
 zmk.behaviors.CustomBehavior.display_name max_size:48
 zmk.behaviors.CustomBehavior.kind max_size:24
 zmk.behaviors.SetCustomBehaviorRequest.config max_count:8
+zmk.behaviors.SetCustomBehaviorRequest.display_name max_size:48
 # AddCustomBehaviorRequest is decoded (request), so its strings + config array
 # are nanopb-static (same stack-local cost as SetCustomBehaviorRequest — see
 # below). kind/display_name match CustomBehavior's sizes; config matches the set

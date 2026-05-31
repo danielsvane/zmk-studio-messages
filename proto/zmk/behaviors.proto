@@ -88,6 +88,7 @@ message CustomBehavior {
 message SetCustomBehaviorRequest {
     uint32 id = 1;                  // behaviour local_id (the slot to edit)
     repeated ConfigField config = 2;
+    optional string display_name = 3; // rename the slot (M9); absent = leave name unchanged
 }
 
 // Result of set_custom_behavior. NOT_FOUND: no runtime slot has that local_id.
