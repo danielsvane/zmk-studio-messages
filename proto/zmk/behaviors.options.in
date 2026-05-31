@@ -1,0 +1,12 @@
+# Make ConfigField a self-contained nanopb static struct so the same message
+# round-trips through the get_custom_behaviors response encode AND (from M3) a
+# set request decode (requests are decoded generically, with no per-field
+# callbacks). The repeated submessage lists themselves — CustomBehaviors.behaviors
+# and CustomBehavior.config — stay nanopb callbacks (encoded one entry at a time,
+# mirroring combos' encode_combos) so no large arrays sit on the stack.
+zmk.behaviors.CustomBehavior.display_name max_size:48
+zmk.behaviors.CustomBehavior.kind max_size:24
+zmk.behaviors.ConfigField.key max_size:32
+zmk.behaviors.ConfigField.display_name max_size:48
+zmk.behaviors.EnumOptions.names max_count:8 max_size:32
+zmk.behaviors.KeyPositions.positions max_count:32
