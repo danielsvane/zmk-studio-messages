@@ -7,6 +7,7 @@ message Request {
         bool list_all_behaviors = 1;
         GetBehaviorDetailsRequest get_behavior_details = 2;
         bool get_custom_behaviors = 3;
+        SetCustomBehaviorRequest set_custom_behavior = 4;
     }
 }
 
@@ -19,6 +20,7 @@ message Response {
         ListAllBehaviorsResponse list_all_behaviors = 1;
         GetBehaviorDetailsResponse get_behavior_details = 2;
         CustomBehaviors get_custom_behaviors = 3;
+        SetCustomBehaviorResponse set_custom_behavior = 4;
     }
 }
 
@@ -39,6 +41,25 @@ message CustomBehavior {
     string display_name = 2;
     string kind = 3;          // the DT compatible family, e.g. "hold-tap"
     repeated ConfigField config = 4;
+}
+
+// Edit the config of the custom behaviour with local_id `id`, in place (M3:
+// RAM-only, lost on reboot). `config` carries the edited fields as the same
+// generic ConfigField used in the get_custom_behaviors response; the firmware
+// matches each by `key` against the kind's schema descriptor and writes the
+// `value` into the slot's RAM config (it ignores `schema`/`display_name` on a
+// set — those are response-only). Mirrors combos' SetComboRequest.
+message SetCustomBehaviorRequest {
+    uint32 id = 1;                  // behaviour local_id (the slot to edit)
+    repeated ConfigField config = 2;
+}
+
+// Result of set_custom_behavior. NOT_FOUND: no runtime slot has that local_id.
+// INVALID_PARAMETERS: a field's value was out of its schema's bounds.
+enum SetCustomBehaviorResponse {
+    SET_CUSTOM_BEHAVIOR_RESP_OK = 0;
+    SET_CUSTOM_BEHAVIOR_RESP_NOT_FOUND = 1;
+    SET_CUSTOM_BEHAVIOR_RESP_INVALID_PARAMETERS = 2;
 }
 
 // One editable config field of a custom behaviour. Carries BOTH the current

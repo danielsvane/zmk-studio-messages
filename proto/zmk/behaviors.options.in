@@ -1,12 +1,22 @@
 # Make ConfigField a self-contained nanopb static struct so the same message
 # round-trips through the get_custom_behaviors response encode AND (from M3) a
 # set request decode (requests are decoded generically, with no per-field
-# callbacks). The repeated submessage lists themselves — CustomBehaviors.behaviors
-# and CustomBehavior.config — stay nanopb callbacks (encoded one entry at a time,
-# mirroring combos' encode_combos) so no large arrays sit on the stack.
+# callbacks). The repeated submessage lists in the RESPONSE — CustomBehaviors.
+# behaviors and CustomBehavior.config — stay nanopb callbacks (encoded one entry
+# at a time, mirroring combos' encode_combos) so no large arrays sit on the stack.
+#
+# SetCustomBehaviorRequest.config is the one repeated ConfigField that is DECODED
+# (not encoded), so it must be a static array. The decoded zmk_studio_Request is a
+# stack local on the RPC thread (rpc.c rpc_main), so config's max_count × the
+# ConfigField struct size is charged straight to that thread's stack. Keep both
+# small: 8 fields covers hold-tap's scalar set with headroom, and EnumOptions is
+# tightened to 5×24 (flavor has 4 names, longest "tap-unless-interrupted" = 22)
+# so each ConfigField stays light. ZMK_STUDIO_RPC_THREAD_STACK_SIZE is bumped
+# under ZMK_BEHAVIOR_RUNTIME_EDITING to absorb the array (see app/src/studio/Kconfig).
 zmk.behaviors.CustomBehavior.display_name max_size:48
 zmk.behaviors.CustomBehavior.kind max_size:24
+zmk.behaviors.SetCustomBehaviorRequest.config max_count:8
 zmk.behaviors.ConfigField.key max_size:32
 zmk.behaviors.ConfigField.display_name max_size:48
-zmk.behaviors.EnumOptions.names max_count:8 max_size:32
+zmk.behaviors.EnumOptions.names max_count:5 max_size:24
 zmk.behaviors.KeyPositions.positions max_count:32
